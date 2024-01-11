@@ -91,15 +91,22 @@ async fn main() {
     let addr: SocketAddr = ([127, 0, 0, 1], 3000).into();
     let listener = TcpListener::bind(addr).await.unwrap();
     let mut printed_nodelay = false;
+    let mut printed_set_nodelay = false;
 
     println!("Listening on http://{addr} routes /stream and /regular");
     loop {
         let (tcp, _) = listener.accept().await.unwrap();
         if !printed_nodelay {
             println!("Default nodelay: {}", tcp.nodelay().unwrap());
+            println!("");
             printed_nodelay = true;
         }
         tcp.set_nodelay(true).unwrap();
+        if !printed_set_nodelay {
+            println!("Set nodelay: {}", tcp.nodelay().unwrap());
+            println!("");
+            printed_set_nodelay = true;
+        }
         let io = TokioIo::new(tcp);
 
         tokio::task::spawn(async move {

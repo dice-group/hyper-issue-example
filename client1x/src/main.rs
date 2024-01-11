@@ -33,17 +33,41 @@ async fn main() {
         }
     });
 
-    for _ in 0..200 {
-        // reusing the connection does not seem to work, not sure why
-        // sometimes panics because ECANCELED
-
+    for i in 0..200 {
+        let endpoint : Uri = format!("{}://{}{}",
+            endpoint.scheme_str().unwrap(),
+            endpoint.authority().unwrap().as_str(),
+            format!("{}?{}", endpoint.path(), i).as_str()).parse().unwrap();
         let req = Request::builder()
             .uri(endpoint.clone())
             .header(hyper::header::HOST, endpoint.authority().unwrap().as_str())
             .body(Empty::<Bytes>::new())
             .unwrap();
 
-        let mut resp = sender.send_request(req.clone()).await.unwrap();
+        // Cannot just call send_request after prior response finished
+        // MUST call poll_ready and wait for the connection to be marked as ready
+        // This will typically be a no-op, but failing to call this leads to a race
+        // conditionw where hyper will call this and will fail if the connection
+        // state variable has not been updated to indicate the connection is ready
+        // for a new request
+        // Consider that reading the last byte off a stream does not have to happen
+        // at the exact moment (or in the same thread) as the code that is updating
+        // the connection state variable
+        while futures::future::poll_fn(|ctx| sender.poll_ready(ctx))
+                .await
+                .is_err()
+        {
+            // This gets hit when the connection for HTTP/1.1 faults
+            panic!("Connection ready check threw error - connection has disconnected, should reconnect");
+        }
+
+        let mut resp = match sender.send_request(req.clone()).await {
+            Ok(resp) => resp,
+            Err(err) => {
+                println!("Failed to send request #{}: {:?}", i, err);
+                return;
+            }
+        };
 
         while let Some(Ok(chunk)) = resp.frame().await {
             std::hint::black_box(chunk.data_ref());

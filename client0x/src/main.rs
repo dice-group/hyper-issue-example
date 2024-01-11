@@ -6,11 +6,12 @@ async fn main() {
     let endpoint = std::env::args().nth(1).unwrap();
     let endpoint: Uri = endpoint.parse().unwrap();
 
-    let client = hyper::client::Client::new();
-
     let start = Instant::now();
 
+    let client = hyper::client::Client::new(); // variant 1
+
     for _ in 0..200 {
+        //let client = hyper::client::Client::new(); // variant 2
         let mut resp = client.get(endpoint.clone()).await.unwrap();
 
         while let Some(Ok(chunk)) = resp.data().await {

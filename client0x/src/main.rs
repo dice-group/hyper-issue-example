@@ -10,6 +10,8 @@ async fn main() {
 
     let client = hyper::client::Client::new(); // variant 1
 
+    println!("Using path: {}", endpoint.path());
+
     for _ in 0..200 {
         //let client = hyper::client::Client::new(); // variant 2
         let mut resp = client.get(endpoint.clone()).await.unwrap();

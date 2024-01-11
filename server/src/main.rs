@@ -1,4 +1,5 @@
 use bytes::{Bytes, BytesMut};
+use common::TokioIo;
 use futures_util::TryStreamExt;
 use http_body_util::{combinators::BoxBody, BodyExt, Full, StreamBody};
 use hyper::{
@@ -7,7 +8,6 @@ use hyper::{
     service::service_fn,
     Request, Response, Result, StatusCode,
 };
-use hyper_issue::TokioIo;
 use std::{convert::Infallible, net::SocketAddr};
 use tokio::{
     net::TcpListener,

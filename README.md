@@ -7,18 +7,18 @@ Run:
 
 Example output:
 ```
-Server running as pid 177499
+Server running as pid 190511
 Listening on http://127.0.0.1:3000 routes /stream and /regular
 
-Reqwest (hyper<1)
+Hyper<1.0
 Using regular route
-took: 2.208865495s
+took: 2.5972577279999998s
 Using stream route
-took: 8.265027194s
+took: 8.238051985s
 
-Hyper (hyper>=1)
+Hyper>=1.0
 Using regular route
-took: 2.175678127s
+took: 2.281762271s
 Using stream route
-took: 2.246615493s
+took: 2.177986499s
 ```

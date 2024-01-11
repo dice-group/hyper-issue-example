@@ -1,7 +1,7 @@
 use bytes::Bytes;
+use common::TokioIo;
 use http_body_util::{BodyExt, Empty};
 use hyper::{Request, Uri};
-use hyper_issue::TokioIo;
 use tokio::{net::TcpStream, time::Instant};
 
 #[tokio::main]

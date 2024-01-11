@@ -14,25 +14,28 @@ async fn main() {
 
     let start = Instant::now();
 
+    println!("Using path: {}", endpoint.path());
+
+    let stream = TcpStream::connect(format!(
+        "{}:{}",
+        endpoint.host().unwrap(),
+        endpoint.port_u16().unwrap_or(80)
+    ))
+    .await
+    .unwrap();
+    stream.set_nodelay(true).unwrap();
+    let io = TokioIo::new(stream);
+    let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await.unwrap();
+
+    tokio::task::spawn(async move {
+        if let Err(err) = conn.await {
+            println!("Connection failed: {:?}", err);
+        }
+    });
+
     for _ in 0..200 {
         // reusing the connection does not seem to work, not sure why
         // sometimes panics because ECANCELED
-
-        let stream = TcpStream::connect(format!(
-            "{}:{}",
-            endpoint.host().unwrap(),
-            endpoint.port_u16().unwrap_or(80)
-        ))
-        .await
-        .unwrap();
-
-        let io = TokioIo::new(stream);
-        let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await.unwrap();
-        tokio::task::spawn(async move {
-            if let Err(err) = conn.await {
-                println!("Connection failed: {:?}", err);
-            }
-        });
 
         let req = Request::builder()
             .uri(endpoint.clone())
